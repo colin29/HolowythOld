@@ -7,6 +7,10 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 
 public class Holowyth extends Game {
 
+    public final int resX = 960;
+    public final int resY = 640;
+	
+    /* Rendering and pipeline variables */
 	SpriteBatch batch;
 	ShapeRenderer shapeRenderer;
 	BitmapFont font;

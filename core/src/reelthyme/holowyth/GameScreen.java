@@ -1,7 +1,10 @@
 package reelthyme.holowyth;
 
+import java.util.ArrayList;
+
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -73,33 +76,11 @@ public class GameScreen implements Screen {
         // tell the SpriteBatch to render in the
         // coordinate system specified by the camera.
         batch.setProjectionMatrix(camera.combined);
-
-       
-        batch.begin();
-        
-        
-        String fps = "FPS: " + String.valueOf(Math.round(logicFps));
-        game.font.setColor(Color.BLACK);
-        game.font.draw(batch, fps , game.resX-60 , 20, 0, fps.length(), 60, Align.left, false, "");
-        //batch.draw(playerSprite, 100, 100, 50, 50);
-        
-        batch.end();
         shapeRenderer.setProjectionMatrix(camera.combined);
-        shapeRenderer.begin(ShapeType.Filled);
-        shapeRenderer.setColor(0, 0, 1, 1);
-        shapeRenderer.circle(100, 100, 25);
-        shapeRenderer.end();
-//        // process user input
-//        if (Gdx.input.isTouched()) {
-//            Vector3 touchPos = new Vector3();
-//            touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
-//            camera.unproject(touchPos);
-//            bucket.x = touchPos.x - 64 / 2;
-//        }
-//        if (Gdx.input.isKeyPressed(Keys.LEFT))
-//            bucket.x -= 200 * Gdx.graphics.getDeltaTime();
-//        if (Gdx.input.isKeyPressed(Keys.RIGHT))
-//            bucket.x += 200 * Gdx.graphics.getDeltaTime();
+        
+        batch.begin();
+        renderGameObjects();
+        batch.end();
         
         /* Run game logic if enough time has elapsed. If render is slow, run game logic up to three times*/
         timeElapsed = System.nanoTime() - INITIAL_TIME;
@@ -119,10 +100,73 @@ public class GameScreen implements Screen {
 //        }
     }
     
+    private void renderGameObjects(){
+        
+        //Draw FPS Counter
+        String fps = "FPS: " + String.valueOf(Math.round(logicFps));
+        game.font.setColor(Color.BLACK);
+        game.font.draw(batch, fps , game.resX-60 , 20, 0, fps.length(), 60, Align.left, false, "");
+        //batch.draw(playerSprite, 100, 100, 50, 50);   
+        
+        
+        //Draw units
+        shapeRenderer.begin(ShapeType.Filled);
+        for(Unit unit : units){
+        	shapeRenderer.setColor(0, 0, 1, 1);
+            shapeRenderer.circle(unit.x, unit.y, 25);
+            shapeRenderer.end();
+        }
+        
+    }
+    
     private long lastTime =  INITIAL_TIME;
     private double logicFps = 0;
-    private void tickGameLogic(){
+    
+    private Unit player = new Unit(200, 100);
+    ArrayList<Unit> units = new ArrayList<Unit>();
+    {
+    units.add(player);
     }
+    
+    
+    private float playerMoveSpeed = 200/ticksPerSecond;
+    final private float SQRT2 = (float) Math.sqrt(2);
+    private void tickGameLogic(){
+    
+    movePlayerNormalized();
+    	
+    	
+    }
+
+    /* ASDW movement */
+	private void movePlayerNormalized() {
+		//Move player according to input
+		player.vy = 0; player.vx = 0;
+		int movementVectorCount = 0;
+		if (Gdx.input.isKeyPressed(Keys.A) || Gdx.input.isKeyPressed(Keys.D)){
+			if (Gdx.input.isKeyPressed(Keys.A)){
+				player.vx = -playerMoveSpeed;
+			}else{
+				player.vx = playerMoveSpeed;
+			}
+			movementVectorCount +=1;
+		}
+		if (Gdx.input.isKeyPressed(Keys.S) || Gdx.input.isKeyPressed(Keys.W)){
+			if (Gdx.input.isKeyPressed(Keys.S)){
+				player.vy = -playerMoveSpeed;
+			}else{
+				player.vy = playerMoveSpeed;
+			}
+			movementVectorCount +=1;
+		}
+		//normalize movement speed (ie. for moving diagonally)
+		if(movementVectorCount == 2){
+			player.vx /= SQRT2;
+			player.vy /= SQRT2;
+		}
+		player.x += player.vx;
+		player.y += player.vy;
+	}
     
     @Override
     public void resize(int width, int height) {

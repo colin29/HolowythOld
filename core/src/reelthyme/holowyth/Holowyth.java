@@ -19,7 +19,8 @@ public class Holowyth extends Game {
 	@Override
 	public void create () {		
 		initializeSharedResources();
-		this.setScreen(new MainMenuScreen(this));
+//		this.setScreen(new MainMenuScreen(this));
+		this.setScreen(new GameScreen(this));
 	}
 	private void initializeSharedResources() {
 		batch = new SpriteBatch();

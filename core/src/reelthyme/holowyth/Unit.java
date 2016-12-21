@@ -11,4 +11,10 @@ public class Unit {
 	}
 	float x;
 	float y;
+	
+	//Velocity variables reset and used every tick. It's the job of tickLogic to ensure that unit
+	// unit velocities are modified in a consistent manner.
+	//tickLogic can, but does not have to use vx/vy for every unit
+	float vx;
+	float vy;
 }

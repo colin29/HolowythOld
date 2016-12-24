@@ -13,6 +13,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer.ShapeType;
 import com.badlogic.gdx.utils.Align;
+import com.sun.javafx.print.Units;
 
 public class GameScreen implements Screen {
     final Holowyth game;
@@ -25,10 +26,11 @@ public class GameScreen implements Screen {
     /*Resource variables*/
     
     /*Game logic variables*/
-
+    private World world;
+    
     public GameScreen(final Holowyth game) {
         this.game = game;
-
+        world = new World(game);
         loadImages();
         loadAndConfigureAudio();
 
@@ -54,12 +56,19 @@ public class GameScreen implements Screen {
 	private void initializeGameLogic() {
 	}
 
+	/* Variables for enforcing fixed fps */
 	final private long INITIAL_TIME = System.nanoTime();
 	private long timeElapsed = 0;
 	private long ticksPerSecond = 60;
 	private long timeBetweenTicks = 1000000000/ticksPerSecond; 
 	private long timeTillNextTick=0;
 	private int maxConsecutiveTicks = 3;
+	
+	/* Variables for calculating logicFps */
+	private long lastTime =  INITIAL_TIME;
+    private double logicFps = 0;
+
+    
     @Override
     public void render(float delta) {
     	
@@ -89,7 +98,7 @@ public class GameScreen implements Screen {
         int i;
         for(i=0; (timeTillNextTick<=0 && i<maxConsecutiveTicks); i++){
         	timeTillNextTick += timeBetweenTicks;
-        	tickGameLogic();
+        	world.tickLogic();
         }
         
         if(i>0){
@@ -99,7 +108,7 @@ public class GameScreen implements Screen {
 //        	timeTillNextTick = 0;
 //        }
     }
-    
+
     private void renderGameObjects(){
         
         //Draw FPS Counter
@@ -111,63 +120,66 @@ public class GameScreen implements Screen {
         
         //Draw units
         shapeRenderer.begin(ShapeType.Filled);
-        for(Unit unit : units){
-        	shapeRenderer.setColor(0, 0, 1, 1);
-            shapeRenderer.circle(unit.x, unit.y, 25);
-            shapeRenderer.end();
+        for(Unit unit : world.units){
+        	if(unit.getFaction() == Unit.Faction.FRIENDLY){
+        		shapeRenderer.setColor(0, 0, 1, 1);
+        	}else if((unit.getFaction().ordinal()) >= 2){ //color enemy units
+        		shapeRenderer.setColor(1, 0, 0, 1);
+        	}else { //unit of unknown or neutral type
+        		shapeRenderer.setColor(0, 0, 0, 1);
+        	}
+        	
+            shapeRenderer.circle(unit.x(), unit.y(), 25);
         }
+        shapeRenderer.end();
         
     }
     
-    private long lastTime =  INITIAL_TIME;
-    private double logicFps = 0;
     
-    private Unit player = new Unit(200, 100);
-    ArrayList<Unit> units = new ArrayList<Unit>();
-    {
-    units.add(player);
-    }
+   
     
-    
-    private float playerMoveSpeed = 200/ticksPerSecond;
-    final private float SQRT2 = (float) Math.sqrt(2);
-    private void tickGameLogic(){
-    
-    movePlayerNormalized();
-    	
-    	
-    }
-
-    /* ASDW movement */
-	private void movePlayerNormalized() {
-		//Move player according to input
-		player.vy = 0; player.vx = 0;
-		int movementVectorCount = 0;
-		if (Gdx.input.isKeyPressed(Keys.A) || Gdx.input.isKeyPressed(Keys.D)){
-			if (Gdx.input.isKeyPressed(Keys.A)){
-				player.vx = -playerMoveSpeed;
-			}else{
-				player.vx = playerMoveSpeed;
-			}
-			movementVectorCount +=1;
-		}
-		if (Gdx.input.isKeyPressed(Keys.S) || Gdx.input.isKeyPressed(Keys.W)){
-			if (Gdx.input.isKeyPressed(Keys.S)){
-				player.vy = -playerMoveSpeed;
-			}else{
-				player.vy = playerMoveSpeed;
-			}
-			movementVectorCount +=1;
-		}
-		//normalize movement speed (ie. for moving diagonally)
-		if(movementVectorCount == 2){
-			player.vx /= SQRT2;
-			player.vy /= SQRT2;
-		}
-		player.x += player.vx;
-		player.y += player.vy;
-	}
-    
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
     @Override
     public void resize(int width, int height) {
     }
@@ -179,7 +191,22 @@ public class GameScreen implements Screen {
     @Override
     public void hide() {
     }
-
+    @Override
+    public void dispose() {
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     @Override
     public void pause() {
     }
@@ -188,8 +215,6 @@ public class GameScreen implements Screen {
     public void resume() {
     }
 
-    @Override
-    public void dispose() {
-    }
+ 
 
 }

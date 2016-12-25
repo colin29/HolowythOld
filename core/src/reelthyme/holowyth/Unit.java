@@ -103,24 +103,17 @@ public class Unit {
 
 	/* Getters and setter */
 	
-	int maxHp(){
-		return this.maxHp;
-	}
-	void setMaxHp(int value){
-		if(value < 1){
-			System.out.println("Error: MaxHp must be greater than 0");
-		}
-		maxHp = value;
-		if(hp > maxHp){
-			hp = maxHp;
-		}
-	}
 	public Faction getFaction() {
 		return myFaction;
 	}
 	
 	public Loc getMoveTarget(){
-		return new Loc(moveTarget.x(), moveTarget.y());
+		if(moveTarget != null){
+			return new Loc(moveTarget.x(), moveTarget.y());
+		}else{
+			return null;
+		}
+		
 	}
 	public Unit getAttackTarget(){
 		return this.attackTarget;
@@ -153,6 +146,19 @@ public class Unit {
 		this.speed = speed;
 	}
 
+	int maxHp(){
+		return this.maxHp;
+	}
+	void setMaxHp(int value){
+		if(value < 1){
+			System.out.println("Error: MaxHp must be greater than 0");
+		}
+		maxHp = value;
+		if(hp > maxHp){
+			hp = maxHp;
+		}
+	}
+	
 }
 
 

@@ -9,78 +9,104 @@ import reelthyme.holowyth.util.Loc;
 
 public class World {
 
+	Holowyth game;
+	ArrayList<Unit> units = new ArrayList<Unit>();
+	
     private Unit player = new Unit(200, 100, Unit.Faction.FRIENDLY);
     private Unit enemy1 = new Unit(400, 400, Unit.Faction.ENEMY1);
     private Unit enemy2 = new Unit(600, 100, Unit.Faction.ENEMY1);
     
-    ArrayList<Unit> units = new ArrayList<Unit>();
+    
+    
+    /* Constant fields */
+    private static float MIN_SPACING = 100;
+    
+    /* Misc. constant expressions */
     final private float SQRT2 = (float) Math.sqrt(2);
-    
-    Holowyth game;
-    
-    
-    
+
+
     World(final Holowyth game) {
 		this.game = game;
+		
+		player.setSpeed(25);
 		units.add(player);
 		units.add(enemy1);
 		//units.add(enemy2);
 	}
 
+    
 	void tickLogic(){
     
+		
+	/* Four step Process for basic movement combat*/ 
+		
 	
-	//handle the enemy AI.
+	
+	/* Step 1: Set unit movement */
+	//Handle the enemy AI
 	for(Unit u: units){
 		if(u.isEnemy()){
 			u.setMoveTarget(player.loc());
 		}
 	}
-	//for enemies, set them to move towards their moveTargets
-	Loc dest = player.loc();
-	Loc loc = new Loc(0,0);
-	float tempX, tempY;
-	float distX, distY, dist;
-	float minSpacing = 100;
 	for(Unit u: units){
 		if(u.isEnemy()){
-			if(u.getMoveTarget() != null){
-				//1. Calculate difference vectors (target - this).
-				distX = dest.x() - u.x();
-				distY = dest.y() - u.y();
-				
-				//2. If distance to unit is less than 10, instead set interim target to a point 10 dist. away
-				//and recalculate distance vectors
-				tempX = dest.x();
-				tempY = dest.y();
-				dist = (float) Math.sqrt((distX * distX + distY * distY));
-				if(dist <= minSpacing + u.getSpeed() * Unit.SPEED_CONVERSION_FACTOR){
-					distX *= -(minSpacing-dist)/dist;
-					distY *= -(minSpacing-dist)/dist;
-					tempX = u.x() + distX;
-					tempY = u.y() + distY;
-					dist = minSpacing-dist;
-				}
-				System.out.println(dist);
-				
-				//If distance is less than speed, set the unit to move to the interim target.
-				if(dist < u.getSpeed()){
-					u.vx = tempX - u.x();
-					u.vy = tempY - u.y();
-				}else{
-				//Otherwise, divide the distance vectors by (speed / distance).
-					u.vx = distX * (u.getSpeed() / dist) / Unit.SPEED_CONVERSION_FACTOR;
-					u.vy = distY * (u.getSpeed() / dist) / Unit.SPEED_CONVERSION_FACTOR;
-				}
-
-			}
+			u.setMoveTowardsTarget();
 		}
 	}
-		
     setPlayerMoveNormalized();
+    
+    /* Step 2: Move units */
     moveUnits();
     
+    /* Step 3: Detect range for units trying to engage */
+    
+    /* Step 4: Handle combat logic */
+    
     }
+
+	private void setMoveTowardsTarget(Unit u) {
+		if(u.getMoveTarget() == null){
+			return;
+		}
+		Loc dest = u.getMoveTarget();
+		
+		float tempX;
+		float tempY;
+		float distX;
+		float distY;
+		float dist;
+		if(u.getMoveTarget() != null){
+			//1. Calculate difference vectors (target - this).
+			distX = dest.x() - u.x();
+			distY = dest.y() - u.y();
+			
+			//2. If distance to unit is less than 10, instead set interim target to a point 10 dist. away
+			//and recalculate distance vectors
+			tempX = dest.x();
+			tempY = dest.y();
+			dist = (float) Math.sqrt((distX * distX + distY * distY));
+			if(dist <= MIN_SPACING + u.getSpeed() * Unit.SPEED_CONVERSION_FACTOR){
+				distX *= -(MIN_SPACING-dist)/dist;
+				distY *= -(MIN_SPACING-dist)/dist;
+				tempX = u.x() + distX;
+				tempY = u.y() + distY;
+				dist = MIN_SPACING-dist;
+			}
+			System.out.println(dist);
+			
+			//If distance is less than speed, set the unit to move to the interim target.
+			if(dist < u.getSpeed()){
+				u.vx = tempX - u.x();
+				u.vy = tempY - u.y();
+			}else{
+			//Otherwise, divide the distance vectors by (speed / distance).
+				u.vx = distX * (u.getSpeed() / dist) / Unit.SPEED_CONVERSION_FACTOR;
+				u.vy = distY * (u.getSpeed() / dist) / Unit.SPEED_CONVERSION_FACTOR;
+			}
+
+		}
+	}
 
     
  
@@ -125,5 +151,12 @@ public class World {
 	private void spawnEnemy(float posX, float posY){
 		Unit unit = new Unit(posX, posY, Unit.Faction.ENEMY1);
 	}
+
+	public static float getMinSpacing() {
+		return MIN_SPACING;
+	}
+	
+	/* Getters and Setters */
+
 	
 }

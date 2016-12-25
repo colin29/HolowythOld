@@ -24,7 +24,7 @@ public class World {
 		this.game = game;
 		units.add(player);
 		units.add(enemy1);
-		units.add(enemy2);
+		//units.add(enemy2);
 	}
 
 	void tickLogic(){
@@ -41,6 +41,7 @@ public class World {
 	Loc loc = new Loc(0,0);
 	float tempX, tempY;
 	float distX, distY, dist;
+	float minSpacing = 100;
 	for(Unit u: units){
 		if(u.isEnemy()){
 			if(u.getMoveTarget() != null){
@@ -53,13 +54,14 @@ public class World {
 				tempX = dest.x();
 				tempY = dest.y();
 				dist = (float) Math.sqrt((distX * distX + distY * distY));
-				if(dist <= 100){
-					distX *= -100/dist;
-					distY *= -100/dist;
+				if(dist <= minSpacing + u.getSpeed() * Unit.SPEED_CONVERSION_FACTOR){
+					distX *= -(minSpacing-dist)/dist;
+					distY *= -(minSpacing-dist)/dist;
 					tempX = u.x() + distX;
 					tempY = u.y() + distY;
-					dist = 100;
+					dist = minSpacing-dist;
 				}
+				System.out.println(dist);
 				
 				//If distance is less than speed, set the unit to move to the interim target.
 				if(dist < u.getSpeed()){

@@ -39,25 +39,29 @@ public class Unit {
 	
 	/* Unit command interface */ 
 	
-	public void setMoveTarget(Loc loc){
-		moveTarget = new Loc(loc.x(), loc.y());
+	public void moveOrder(Loc loc){
+		setMoveTarget(loc);
 		attackTarget = null;
 	}
-	public void setAttackTarget(Unit unit){
-		//Check if target is an opposing faction.
-		if(this.getFaction()==Unit.Faction.FRIENDLY && unit.isEnemy() ||
-			this.isEnemy() && unit.getFaction() == Unit.Faction.FRIENDLY){
+	public void attackOrder(Unit unit){
+		if(this.areFoes(unit)){
 			this.attackTarget = unit;	
 		}else{
 			System.out.println("Target unit is not a foe");
 		}
-		
+		//Does not need to set the moveTarget (it is set automatically to the target's location every turn)
 	}
 	
 	/* Protected Controls */
 	
+	/** 
+	 * Sets the move (vx, vy) of a unit based on the unit's moveTarget;
+	 *
+	 **/
 	void setMoveTowardsTarget() {
 		if(this.getMoveTarget() == null){
+			this.vx = 0;
+			this.vy = 0;
 			return;
 		}
 		Loc dest = this.getMoveTarget();
@@ -85,7 +89,6 @@ public class Unit {
 				tempY = y + distY;
 				dist = minSpacing-dist;
 			}
-			System.out.println(dist);
 			
 			//If distance is less than speed, set the unit to move to the interim target.
 			if(dist < this.speed){
@@ -100,7 +103,22 @@ public class Unit {
 		}
 	}
 	
+	public void setMoveTarget(Loc loc){
+		moveTarget = new Loc(loc.x(), loc.y());
+	}
 
+	/* Logical helper functions */
+	
+	public boolean isEnemy(){
+		return (this.myFaction.ordinal() >= 2);
+	}
+	
+	public boolean areFoes(Unit unit){
+		return (this.getFaction()==Unit.Faction.FRIENDLY && unit.isEnemy() ||
+				this.isEnemy() && unit.getFaction() == Unit.Faction.FRIENDLY);
+	}
+	
+	
 	/* Getters and setter */
 	
 	public Faction getFaction() {
@@ -119,36 +137,32 @@ public class Unit {
 		return this.attackTarget;
 	}
 	
-	public boolean isEnemy(){
-		return (this.myFaction.ordinal() >= 2);
-	}
+
 	public Loc loc(){
 		return new Loc(this.x, this.y);
 	}
 	
-	/* Convenience functions, equivalent to getting and setting Loc */
+	/* alternative getters for fields x and y */
 	public float x() {
 		return x;
 	}
 	public float y() {
 		return y;
 	}
-	void setX(float x) {
-		this.x = x;
-	}
-	void setY(float y) {
-		this.y = y;
-	}
+	
 	public float getSpeed() {
 		return speed;
 	}
-	void setSpeed(float speed) {
-		this.speed = speed;
-	}
 
-	int maxHp(){
+	public int maxHp(){
 		return this.maxHp;
 	}
+	
+	public Unit getIsAttacking() {
+		return isAttacking;
+	}
+	
+	/* Protected setters */
 	void setMaxHp(int value){
 		if(value < 1){
 			System.out.println("Error: MaxHp must be greater than 0");
@@ -158,6 +172,27 @@ public class Unit {
 			hp = maxHp;
 		}
 	}
+	void setIsAttacking(Unit unit){
+		if(this.areFoes(unit)){
+			this.isAttacking = unit;
+		}else{
+			System.out.println("Error in world control: Trying to engage a unit which is not a foe");
+			System.out.println(unit.getFaction() + " " + unit.getAttackTarget().getFaction());
+		}
+		//Does not check distance, because that is a World semantic, and expected to be managed there.
+	}
+	
+	void setX(float x) {
+		this.x = x;
+	}
+	void setY(float y) {
+		this.y = y;
+	}
+	void setSpeed(float speed) {
+		this.speed = speed;
+	}
+
+
 	
 }
 

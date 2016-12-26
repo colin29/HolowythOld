@@ -62,7 +62,7 @@ public class GameScreen implements Screen {
 	private long ticksPerSecond = 60;
 	private long timeBetweenTicks = 1000000000/ticksPerSecond; 
 	private long timeTillNextTick=0;
-	private int maxConsecutiveTicks = 3;
+	private int maxConsecutiveTicks = 1; //normally is 3
 	
 	/* Variables for calculating logicFps */
 	private long lastTime =  INITIAL_TIME;
@@ -118,18 +118,31 @@ public class GameScreen implements Screen {
         //batch.draw(playerSprite, 100, 100, 50, 50);   
         
         
+        float UNIT_DRAW_SIZE = 25;
+        
         //Draw units
         shapeRenderer.begin(ShapeType.Filled);
         for(Unit unit : world.units){
-        	if(unit.getFaction() == Unit.Faction.FRIENDLY){
-        		shapeRenderer.setColor(0, 0, 1, 1);
-        	}else if((unit.getFaction().ordinal()) >= 2){ //color enemy units
-        		shapeRenderer.setColor(1, 0, 0, 1);
-        	}else { //unit of unknown or neutral type
-        		shapeRenderer.setColor(0, 0, 0, 1);
-        	}
         	
-            shapeRenderer.circle(unit.x(), unit.y(), 25);
+        	Color unitColor = new Color();
+        	
+        	if(unit.getFaction() == Unit.Faction.FRIENDLY){
+        		unitColor.set(0, 0, 1, 1);
+        	}else if(unit.isEnemy()){ //color enemy units
+        		unitColor.set(1, 0, 0, 1);
+        	}else { //unit of unknown or neutral type
+        		unitColor.set(0.5f, 0.5f, 0.5f, 1);
+        	}
+        	shapeRenderer.setColor(unitColor);
+        	
+        	if(unit.getIsAttacking() != null){
+        		shapeRenderer.setColor(1, 207f/256, 65f/256, 0);
+        		shapeRenderer.circle(unit.x(), unit.y(), UNIT_DRAW_SIZE + 5);
+        		shapeRenderer.setColor(unitColor);
+            }
+            shapeRenderer.circle(unit.x(), unit.y(), UNIT_DRAW_SIZE);
+            
+            
         }
         shapeRenderer.end();
         

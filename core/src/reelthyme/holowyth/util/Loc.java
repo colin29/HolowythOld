@@ -20,4 +20,9 @@ public class Loc {
 	public void setY(float y) {
 		this.y = y;
 	}
+	
+	public static float dist(Loc a, Loc b){
+		return (float) Math.sqrt(((b.x-a.x)*(b.x-a.x) + (b.y-a.y)*(b.y-a.y)));
+	}
 }
+

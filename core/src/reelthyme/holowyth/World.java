@@ -23,12 +23,20 @@ public class World {
     
     /* Misc. constant expressions */
     final private float SQRT2 = (float) Math.sqrt(2);
+    
+    /* Misc. debugging fields */
+    final public int FRAMES_BETWEEN_BREAKPOINTS = 30;
+    private int breakPointCounter = 1;
 
 
     World(final Holowyth game) {
 		this.game = game;
 		
 		player.setSpeed(25);
+		
+		enemy1.attackOrder(player);
+		
+		
 		units.add(player);
 		units.add(enemy1);
 		//units.add(enemy2);
@@ -37,22 +45,26 @@ public class World {
     
 	void tickLogic(){
     
+	breakPointCounter++;
+	if(breakPointCounter > FRAMES_BETWEEN_BREAKPOINTS){
+		breakPointCounter = 1;
+	}
 		
 	/* Four step Process for basic movement combat*/ 
 		
 	
 	
-	/* Step 1: Set unit movement */
-	//Handle the enemy AI
+	/* Step 1: Figure out targets and set unit moves */
+		
+	//Units will track towards their attackTargets
 	for(Unit u: units){
-		if(u.isEnemy()){
-			u.setMoveTarget(player.loc());
+		if(u.getAttackTarget() != null){
+			u.setMoveTarget(u.getAttackTarget().loc());
 		}
 	}
+	
 	for(Unit u: units){
-		if(u.isEnemy()){
-			u.setMoveTowardsTarget();
-		}
+		u.setMoveTowardsTarget();
 	}
     setPlayerMoveNormalized();
     
@@ -61,55 +73,29 @@ public class World {
     
     /* Step 3: Detect range for units trying to engage */
     
+    for(Unit u: units){
+    	if(u.getAttackTarget() != null){
+    		if(Loc.dist(u.loc(), u.getAttackTarget().loc()) <= MIN_SPACING){
+    			u.setIsAttacking(u.getAttackTarget());
+    		}
+    	}
+    }
+    
+    getMinSpacing();
+    
+//    for(Unit u: units){
+//	    if(u.isEnemy()){
+//			System.out.println(u.getAttackTarget());
+//		}
+//    }
+    
     /* Step 4: Handle combat logic */
+   
+    
     
     }
 
-	private void setMoveTowardsTarget(Unit u) {
-		if(u.getMoveTarget() == null){
-			return;
-		}
-		Loc dest = u.getMoveTarget();
-		
-		float tempX;
-		float tempY;
-		float distX;
-		float distY;
-		float dist;
-		if(u.getMoveTarget() != null){
-			//1. Calculate difference vectors (target - this).
-			distX = dest.x() - u.x();
-			distY = dest.y() - u.y();
-			
-			//2. If distance to unit is less than 10, instead set interim target to a point 10 dist. away
-			//and recalculate distance vectors
-			tempX = dest.x();
-			tempY = dest.y();
-			dist = (float) Math.sqrt((distX * distX + distY * distY));
-			if(dist <= MIN_SPACING + u.getSpeed() * Unit.SPEED_CONVERSION_FACTOR){
-				distX *= -(MIN_SPACING-dist)/dist;
-				distY *= -(MIN_SPACING-dist)/dist;
-				tempX = u.x() + distX;
-				tempY = u.y() + distY;
-				dist = MIN_SPACING-dist;
-			}
-			System.out.println(dist);
-			
-			//If distance is less than speed, set the unit to move to the interim target.
-			if(dist < u.getSpeed()){
-				u.vx = tempX - u.x();
-				u.vy = tempY - u.y();
-			}else{
-			//Otherwise, divide the distance vectors by (speed / distance).
-				u.vx = distX * (u.getSpeed() / dist) / Unit.SPEED_CONVERSION_FACTOR;
-				u.vy = distY * (u.getSpeed() / dist) / Unit.SPEED_CONVERSION_FACTOR;
-			}
-
-		}
-	}
-
-    
- 
+	
     private void moveUnits() {
     	for(Unit unit: units){
     		unit.setX(unit.x() + unit.vx);
@@ -145,11 +131,6 @@ public class World {
 			player.vx /= SQRT2;
 			player.vy /= SQRT2;
 		}
-	}
-
-	/* Spawn a default enemy that will just attack whatever's nearby */
-	private void spawnEnemy(float posX, float posY){
-		Unit unit = new Unit(posX, posY, Unit.Faction.ENEMY1);
 	}
 
 	public static float getMinSpacing() {

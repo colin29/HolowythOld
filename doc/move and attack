@@ -1,0 +1,43 @@
+Move:
+setMoveTarget(Loc):
+[x] cancels any existing Attack command.
+
+Attack:
+setAttackTarget(unit)
+[x] cancels any existing Move command {well it will be handled later}
+[x] Each tick, if the unit has an attackTarget A, moveTarget is set to the location of A.
+
+[x] Detect in-range.
+
+Disengage: ------------------------
+
+Takes 2 seconds. During that two seconds, the disengaging unit does not attack, and suffers from -50% defense. 
+
+A unit that is disengaging does not count as attacking its target anymore. It doesn't have an attackTarget anymore, in fact. Thus, the foe may disengage instantly (this will cause both units to disengage immediately). This, instant disengage must be done before attacking. If the unit makes an attack, then it loses the chance to disengage instantly. 
+
+How can I make it so a disengaging unit has a chance to get away from an attacking unit?
+After the disengage happens, the unit who made the attack of opportunity suffers an action lock of max{0.5 seconds, weaponCooldown*2+0.5-timeSinceLastAttack}
+
+A typical weapon cooldown might be 0.3 to 1 second.
+
+So if you want to reduce the DPS of the opponent, retreat right before he attacks you. If you want to put the maximum distance between him and you, retreat just after he attacks you.
+
+
+
+
+
+
+
+If a unit disengages, for 5 seconds it cannot be ordered to move, or pass through a location 200 pixels around the unit is disengaged from
+
+
+
+
+
+(I may include a wind up and cool-down for attacks, where units cannot move to break away during that time.)
+
+
+
+
+
+

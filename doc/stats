@@ -1,0 +1,27 @@
+
+
+Stats:
+
+Attack, Defense
+Power, Stability
+Damage, Armor
+Accuracy, Dodge {may have a dodging stance (high dodge, low stability)}
+
+Unit A attacks unit B.
+
+
+Check accuracy against dodge.
+-If dodged, no ill effects
+-Otherwise, continue.
+
+Compare the attack (summed with the rest of units attacking B)
+May result in a full hit, a glancing hit (5% damage), or block:
+-On glancing hit or block, check the attack's power against stability somehow. (power multipler of 0.5 if the attack was a glancing hit)
+	-If the power is greater than the unit's current stability, that unit becomes off-balance
+-On glancing hit or full hit, compare the attack's damage to unit A's armor. (In general, lighter blows are prevented from armor).
+
+
+
+(we'll implement glancing blows last)
+
+

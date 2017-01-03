@@ -2,12 +2,17 @@ package reelthyme.holowyth;
 
 import reelthyme.holowyth.util.Loc;
 
-public class Unit {
+public class Unit implements UnitB, UnitV{
 	
 	private float x;
 	private float y;
 	
-	//Velocity variables reset and used every tick. It's the job of tickLogic to ensure that unit
+	
+	//Screen position variables. Set and used solely by the renderer (and methods called while rendering).
+	float screenX;
+	float screenY;
+	
+	//Velocity variables reset and used every tick. It's the job of world.tickLogic to ensure that unit
 	// unit velocities are modified in a consistent manner.
 	//tickLogic can, but does not have to use vx/vy for every unit
 	float vx;
@@ -17,16 +22,26 @@ public class Unit {
 	private float speed = 20; //default speed. (20 speed corresponds with 200 pixels per second.
 	
 	
-	private int maxHp = 120;
-	private int hp = maxHp;
+	int maxHp = 120;
+	private int hp = maxHp; //private so that World accesses hp via setHp();
+	
+	boolean hasDied;
 	
 	public enum Faction {FRIENDLY, NEUTRAL, ENEMY1, ENEMY2, ENEMY3} //Enemies is 2 and up.
 	private Faction myFaction;
 	
 	private Unit attackTarget;
 	private Unit isAttacking; //is null if not currently Attacking
+
+	/* Fields for implementing Combat */
+	int attackTimer;
+	int damage = 70;
+	int attackInterval = 120; //2 seconds between attacks
+	
 	
 	static final int SPEED_CONVERSION_FACTOR = 6;
+	
+
 	
 	public Unit(double x, double y, Faction faction){
 		this((float) x, (float) y, faction);
@@ -36,6 +51,7 @@ public class Unit {
 		this.y = y;
 		this.myFaction = faction;
 	}
+	
 	
 	/* Unit command interface */ 
 	
@@ -55,13 +71,11 @@ public class Unit {
 	/* Protected Controls */
 	
 	/** 
-	 * Sets the move (vx, vy) of a unit based on the unit's moveTarget;
+	 * Sets the move (vx, vy) of a unit based on the unit's moveTarget. Has no effect if the unit is has no moveTarget;
 	 *
 	 **/
 	void setMoveTowardsTarget() {
 		if(this.getMoveTarget() == null){
-			this.vx = 0;
-			this.vy = 0;
 			return;
 		}
 		Loc dest = this.getMoveTarget();
@@ -118,8 +132,19 @@ public class Unit {
 				this.isEnemy() && unit.getFaction() == Unit.Faction.FRIENDLY);
 	}
 	
+	final private int unitId = getNextUnitId();
+	static private int currentUnitId = 0;
+	static private int getNextUnitId(){
+		currentUnitId +=1;
+		return currentUnitId;
+	}
+	
 	
 	/* Getters and setter */
+	
+	public int getUnitNumber(){
+		return this.unitId;
+	}
 	
 	public Faction getFaction() {
 		return myFaction;
@@ -149,6 +174,12 @@ public class Unit {
 	public float y() {
 		return y;
 	}
+	public float screenX(){
+		return screenX;
+	}
+	public float screenY(){
+		return screenY;
+	}
 	
 	public float getSpeed() {
 		return speed;
@@ -162,8 +193,7 @@ public class Unit {
 		return isAttacking;
 	}
 	
-	/* Protected setters */
-	void setMaxHp(int value){
+	public void setMaxHp(int value){
 		if(value < 1){
 			System.out.println("Error: MaxHp must be greater than 0");
 		}
@@ -174,7 +204,10 @@ public class Unit {
 	}
 	void setIsAttacking(Unit unit){
 		if(this.areFoes(unit)){
-			this.isAttacking = unit;
+			if(this.isAttacking != unit){ //if the unit isn't already attacking that unit
+				this.attackTimer = 60; //The first attack happens 1 second after engagement
+				this.isAttacking = unit;
+			}
 		}else{
 			System.out.println("Error in world control: Trying to engage a unit which is not a foe");
 			System.out.println(unit.getFaction() + " " + unit.getAttackTarget().getFaction());
@@ -182,15 +215,37 @@ public class Unit {
 		//Does not check distance, because that is a World semantic, and expected to be managed there.
 	}
 	
-	void setX(float x) {
+	public void setX(float x) {
 		this.x = x;
 	}
-	void setY(float y) {
+	public void setY(float y) {
 		this.y = y;
 	}
-	void setSpeed(float speed) {
+
+	public void setSpeed(float speed) {
 		this.speed = speed;
 	}
+	public void setScreenX(float screenX) {
+		this.screenX = screenX;
+	}
+	public void setScreenY(float screenY) {
+		this.screenY = screenY;
+	}
+	public int hp() {
+		return hp;
+	}
+	public void setHp(int value){
+		hp = value;
+	}
+	public void doDamageTo(Unit unit, int dam){
+		unit.hp -= dam;
+		if(unit.hp <= 0){
+			unit.hasDied = true;
+		}
+	}
+	
+
+	
 
 
 	

@@ -9,11 +9,10 @@ import reelthyme.holowyth.util.Loc;
 
 public class World {
 
-	Holowyth game;
-	ArrayList<Unit> units = new ArrayList<Unit>();
+	private ArrayList<Unit> units = new ArrayList<Unit>();
 	
     private Unit player = new Unit(200, 100, Unit.Faction.FRIENDLY);
-    private Unit enemy1 = new Unit(400, 400, Unit.Faction.ENEMY1);
+    private Unit enemy1 = new Unit(300, 300, Unit.Faction.ENEMY1);
     private Unit enemy2 = new Unit(600, 100, Unit.Faction.ENEMY1);
     
     
@@ -23,6 +22,7 @@ public class World {
     
     /* Misc. constant expressions */
     final private float SQRT2 = (float) Math.sqrt(2);
+    final private float epsilon = (float) 1E-5;
     
     /* Misc. debugging fields */
     final public int FRAMES_BETWEEN_BREAKPOINTS = 30;
@@ -30,16 +30,16 @@ public class World {
 
 
     World(final Holowyth game) {
-		this.game = game;
 		
 		player.setSpeed(25);
 		
 		enemy1.attackOrder(player);
+		enemy2.attackOrder(player);
 		
 		
 		units.add(player);
 		units.add(enemy1);
-		//units.add(enemy2);
+		units.add(enemy2);
 	}
 
     
@@ -57,46 +57,81 @@ public class World {
 	/* Step 1: Figure out targets and set unit moves */
 		
 	//Units will track towards their attackTargets
-	for(Unit u: units){
-		if(u.getAttackTarget() != null){
-			u.setMoveTarget(u.getAttackTarget().loc());
+	for(Unit unit: units){
+		if(unit.getAttackTarget() != null){
+			unit.setMoveTarget(unit.getAttackTarget().loc());
 		}
 	}
 	
-	for(Unit u: units){
-		u.setMoveTowardsTarget();
+	/* Start determining unit moves */
+	for(Unit unit: units){
+		unit.vx = 0;
+		unit.vy = 0;
 	}
-    setPlayerMoveNormalized();
+	
+	for(Unit unit: units){
+		if(!isBeingAttacked(unit)){
+			unit.setMoveTowardsTarget();
+		}
+	}
+	if(!isBeingAttacked(player)){
+		setPlayerMoveNormalized();
+	}
+      
+    //Any skills or mechanics that deal with movement should make their effect here
     
-    /* Step 2: Move units */
     moveUnits();
+    checkRangeForEngagingUnits();
     
-    /* Step 3: Detect range for units trying to engage */
     
-    for(Unit u: units){
-    	if(u.getAttackTarget() != null){
-    		if(Loc.dist(u.loc(), u.getAttackTarget().loc()) <= MIN_SPACING){
-    			u.setIsAttacking(u.getAttackTarget());
-    		}
+    /* Handle combat logic */
+    
+    //Make units do their combat damage
+    for(Unit unit: units){
+    	if(unit.getIsAttacking() != null){
+    		unit.attackTimer--;
+        	if(unit.attackTimer <= 0){
+        		System.out.println("unit attacks: " + unit.getUnitNumber());
+        		//attack occurs
+        		unit.doDamageTo(unit.getIsAttacking(), unit.damage);
+        		unit.attackTimer = unit.attackInterval;
+        	}
+    	}
+    	
+    }
+    //Remove dead units
+    for(int i=0; i<units.size(); i++){
+    	if(units.get(i).hasDied){
+    		units.remove(i);
+    		i--;
     	}
     }
-    
-    getMinSpacing();
-    
-//    for(Unit u: units){
-//	    if(u.isEnemy()){
-//			System.out.println(u.getAttackTarget());
-//		}
-//    }
-    
-    /* Step 4: Handle combat logic */
-   
     
     
     }
 
-	
+
+	private void checkRangeForEngagingUnits() {
+		for(Unit unit: units){
+			if(unit.getAttackTarget() != null){
+				Unit foe = unit.getAttackTarget();
+			
+				if(Loc.dist(unit.loc(), foe.loc()) <= MIN_SPACING + epsilon){
+					unit.setIsAttacking(foe);
+					
+					//units automatically retaliate if they are not attacking another target.
+					if(foe.getIsAttacking() == null){
+						foe.setIsAttacking(unit);
+					}
+				}
+			}
+		}
+	}
+
     private void moveUnits() {
+    	
+    	@SuppressWarnings("unused")
+    	int x=3; //dummy statement
     	for(Unit unit: units){
     		unit.setX(unit.x() + unit.vx);
     		unit.setY(unit.y() + unit.vy);
@@ -137,7 +172,26 @@ public class World {
 		return MIN_SPACING;
 	}
 	
+	/* Helper functions */
+	
+	private boolean isBeingAttacked(Unit curUnit) {
+		boolean isBeingAttacked = false;
+		for(Unit unit: units){
+			if(unit.getIsAttacking() == curUnit){
+				isBeingAttacked = true;
+			}
+		}
+		return isBeingAttacked;
+	}
+	
 	/* Getters and Setters */
+	
+	/**
+	 * Calling this makes a copy of the unit arrayList, so avoid calling repeatedly. Though with unit counts expected to be under 100, this should not matter.
+	 */
+	ArrayList<UnitV> getUnits(){
+		return new ArrayList<UnitV>(units);
+	}
 
 	
 }

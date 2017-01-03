@@ -12,6 +12,8 @@ public class Holowyth extends Game {
 	
     /* Rendering and pipeline variables */
 	SpriteBatch batch;
+
+	
 	ShapeRenderer shapeRenderer;
 	BitmapFont font;
 
@@ -24,6 +26,7 @@ public class Holowyth extends Game {
 	}
 	private void initializeSharedResources() {
 		batch = new SpriteBatch();
+		
 		shapeRenderer = new ShapeRenderer();
         font = new BitmapFont(); //Use LibGDX's default Arial font.
 	}
